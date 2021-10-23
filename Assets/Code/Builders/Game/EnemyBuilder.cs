@@ -1,4 +1,5 @@
 ﻿using System;
+using Code.Interfaces.ViewModels;
 using Code.Models;
 using Code.ViewModel;
 using Code.Views;
@@ -11,10 +12,14 @@ namespace Code.Builders.Game
     internal sealed class EnemyBuilder
     {
         private EnemyView _enemyView;
+        private EnemyViewModel _enemyViewModel;
         
-        public EnemyBuilder Create(GameObject prefab, Transform playerSpawn)
+        private Transform _spawnPoint;
+        
+        public EnemyBuilder Create(GameObject prefab, Transform spawnPoint)
         {
-            var enemyGameObject = Object.Instantiate(prefab, playerSpawn);
+            _spawnPoint = spawnPoint;
+            var enemyGameObject = Object.Instantiate(prefab, spawnPoint);
             enemyGameObject.transform.SetParent(null);
 
             if (!enemyGameObject.TryGetComponent(out EnemyView enemyView))
@@ -24,7 +29,7 @@ namespace Code.Builders.Game
             return this;
         }
 
-        public EnemyBuilder Initialization(PlayerView playerView)
+        public EnemyBuilder Initialization(IPlayerViewModel playerViewModel)
         {
             if (_enemyView == null)
                 throw new Exception("Противник не создан!");
@@ -32,12 +37,13 @@ namespace Code.Builders.Game
             if (!_enemyView.TryGetComponent(out NavMeshAgent navMeshAgent))
                 throw new Exception("У противника не найден компонент NavMeshAgent.");
             
-            var healthModel = new HealthModel(25);
+            var healthModel = new HealthModel(_enemyView.MaxHealth);
             var enemyModel = new EnemyModel(navMeshAgent);
-            var viewModel = new Models.ViewModel(_enemyView.gameObject, _enemyView.transform);
 
-            var enemyViewModel = new EnemyViewModel(enemyModel, playerView, healthModel);
-            _enemyView.Initialize(viewModel, enemyViewModel);
+            var enemyViewModel = new EnemyViewModel(_enemyView.gameObject, enemyModel, healthModel, _spawnPoint, _enemyView.ScoreOnKill);
+            enemyViewModel.Initialize(playerViewModel);
+            _enemyView.Initialize(enemyViewModel);
+            _enemyViewModel = enemyViewModel;
             
             return this;
         }
@@ -45,6 +51,10 @@ namespace Code.Builders.Game
         public static implicit operator EnemyView(EnemyBuilder enemy)
         {
             return enemy._enemyView;
+        }
+        public static implicit operator EnemyViewModel(EnemyBuilder enemy)
+        {
+            return enemy._enemyViewModel;
         }
     }
 }

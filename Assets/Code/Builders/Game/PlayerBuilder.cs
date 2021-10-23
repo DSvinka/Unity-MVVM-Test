@@ -1,4 +1,5 @@
 ﻿using System;
+using Code.Interfaces.ViewModels;
 using Code.Models;
 using Code.ViewModel;
 using Code.Views;
@@ -9,6 +10,7 @@ namespace Code.Builders.Game
 {
     internal sealed class PlayerBuilder
     {
+        private PlayerViewModel _playerViewModel;
         private PlayerView _playerView;
         
         public PlayerBuilder Create(GameObject prefab, Transform playerSpawn)
@@ -31,13 +33,13 @@ namespace Code.Builders.Game
             if (!_playerView.TryGetComponent(out CharacterController characterController))
                 throw new Exception("У игрока не найден компонент CharacterController.");
             
-            var healthModel = new HealthModel(_playerView.Health);
-            var ammoModel = new AmmoModel(_playerView.Ammo);
+            var healthModel = new HealthModel(_playerView.MaxHealth);
+            var ammoModel = new AmmoModel(_playerView.MaxAmmo);
             var playerModel = new PlayerModel(characterController);
-            var viewModel = new Models.ViewModel(_playerView.gameObject, _playerView.transform);
 
-            var playerViewModel = new PlayerViewModel(healthModel, ammoModel, playerModel);
-            _playerView.Initialize(playerViewModel, viewModel);
+            var playerViewModel = new PlayerViewModel(_playerView.gameObject, healthModel, ammoModel, playerModel);
+            _playerView.Initialize(playerViewModel);
+            _playerViewModel = playerViewModel;
             
             return this;
         }
@@ -45,6 +47,11 @@ namespace Code.Builders.Game
         public static implicit operator PlayerView(PlayerBuilder player)
         {
             return player._playerView;
+        }
+        
+        public static implicit operator PlayerViewModel(PlayerBuilder player)
+        {
+            return player._playerViewModel;
         }
     }
 }

@@ -7,19 +7,27 @@ namespace Code.ViewModel
 {
     internal sealed class PlayerViewModel : IPlayerViewModel
     {
-        public event Action<float> OnHealthChange;
+        public event Action<float> OnHealthChange = delegate(float health) {  };
+        public event Action<int> OnScoreChange = delegate(int score) {  };
         
         public IHealthModel HealthModel { get; }
         public IAmmoModel AmmoModel { get; }
         public IPlayerModel PlayerModel { get; }
 
-        public bool IsDead { get; private set; }
+        public GameObject GameObject { get; }
+        public Transform Transform { get; }
 
-        public PlayerViewModel(IHealthModel healthModel, IAmmoModel ammoModel, IPlayerModel playerModel)
+        public bool IsDead { get; private set; }
+        public int Score { get; private set; }
+
+        public PlayerViewModel(GameObject gameObject, IHealthModel healthModel, IAmmoModel ammoModel, IPlayerModel playerModel)
         {
             HealthModel = healthModel;
             AmmoModel = ammoModel;
             PlayerModel = playerModel;
+            
+            GameObject = gameObject;
+            Transform = gameObject.transform;
         }
 
         public void AddDamage(float damage)
@@ -30,7 +38,23 @@ namespace Code.ViewModel
                 IsDead = true;
             }
             
-            OnHealthChange?.Invoke(HealthModel.CurrentHealth);
+            OnHealthChange.Invoke(HealthModel.CurrentHealth);
+        }
+        
+        public void AddScore(int score)
+        {
+            Score += score;
+            OnScoreChange.Invoke(Score);
+        }
+
+        public void Show()
+        {
+            GameObject.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            GameObject.SetActive(false);
         }
     }
 }

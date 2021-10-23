@@ -1,31 +1,41 @@
-﻿using Code.Interfaces.Models;
-using Code.Interfaces.ViewModels;
-using Code.Interfaces.Views;
+﻿using Code.Interfaces.ViewModels;
 using UnityEngine;
 
 namespace Code.Views
 {
-    internal sealed class EnemyView : MonoBehaviour, IView
+    internal sealed class EnemyView : MonoBehaviour
     {
-        [SerializeField] private float _health;
+        [SerializeField] private float _maxHealth;
         [SerializeField] private float _damage;
+        [SerializeField] private int _scoreOnKill;
+        
         [SerializeField] private float _attackRate;
         [SerializeField] private float _attackDistance;
         
         [SerializeField] private Transform _attackPoint;
 
-        public IViewModel ViewModel { get; private set; }
+        public int ScoreOnKill => _scoreOnKill;
+        public float MaxHealth => _maxHealth;
         public IEnemyViewModel EnemyViewModel { get; private set; }
 
-        public void Initialize(IViewModel viewModel, IEnemyViewModel enemyViewModel)
+        public void Initialize(IEnemyViewModel enemyViewModel)
         {
-            ViewModel = viewModel;
             EnemyViewModel = enemyViewModel;
+        }
+        
+        private void Start()
+        {
+            EnemyViewModel.OnHealthChange += OnHealthChange;
+        }
+
+        private void OnDestroy()
+        {
+            EnemyViewModel.OnHealthChange -= OnHealthChange;
         }
 
         private void Update()
         {
-            Move(EnemyViewModel.PlayerView.ViewModel.Transform.position);
+            Move(EnemyViewModel.PlayerViewModel.Transform.position);
             Attack(Time.deltaTime);
         }
 
@@ -55,15 +65,13 @@ namespace Code.Views
                 EnemyViewModel.EnemyModel.AttackCooldown = _attackRate;
             }
         }
-
-        public void Show()
+        
+        private void OnHealthChange(float health)
         {
-            gameObject.SetActive(true);
-        }
-
-        public void Hide()
-        {
-            gameObject.SetActive(false);
+            if (EnemyViewModel.IsDead)
+            {
+                EnemyViewModel.Reset();
+            }
         }
     }
 }

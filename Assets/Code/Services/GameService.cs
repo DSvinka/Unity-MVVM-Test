@@ -1,6 +1,8 @@
 ﻿using System;
 using Code.Builders.Game;
+using Code.Interfaces.ViewModels;
 using Code.Markers;
+using Code.ViewModel;
 using Code.Views;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -20,18 +22,25 @@ namespace Code.Services
             return (playerSpawn.transform, enemySpawns);
         }
         
-        public static PlayerView CreatePlayer(GameObject prefab, Transform spawnPoint)
+        public static IPlayerViewModel CreatePlayer(GameObject prefab, Transform spawnPoint)
         {
             var playerBuilder = new PlayerBuilder();
-            PlayerView playerView = playerBuilder.Create(prefab, spawnPoint).Initialization();
-            return playerView;
+            PlayerViewModel playerViewModel = playerBuilder.Create(prefab, spawnPoint).Initialization();
+            return playerViewModel;
         }
         
-        public static EnemyView CreateEnemy(GameObject prefab, PlayerView playerView, Transform spawnPoint)
+        public static IEnemyViewModel CreateEnemy(GameObject prefab, IPlayerViewModel playerViewModel, Transform spawnPoint)
         {
             var enemyBuilder = new EnemyBuilder();
-            EnemyView enemyView = enemyBuilder.Create(prefab, spawnPoint).Initialization(playerView);
-            return enemyView;
+            EnemyViewModel enemyViewModel = enemyBuilder.Create(prefab, spawnPoint).Initialization(playerViewModel);
+            return enemyViewModel;
+        }
+        
+        public static IHudViewModel CreateHud(GameObject prefab, IPlayerViewModel playerViewModel)
+        {
+            var hudBuilder = new HudBuilder();
+            HudViewModel hudViewModel = hudBuilder.Create(prefab).Initialization(playerViewModel);
+            return hudViewModel;
         }
     }
 }
